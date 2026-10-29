@@ -106,6 +106,31 @@ services:
         limits:
           memory: 1g
 
+  # 필요할 때만 띄운다: docker compose --profile tools up -d kafka-ui
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    profiles: [tools]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+      # 토픽·메시지를 손으로 바꾸지 않도록 기본은 읽기 전용. 실험 중에만 .env에서 false로
+      KAFKA_CLUSTERS_0_READONLY: ${KAFKA_UI_READONLY:-true}
+      JAVA_OPTS: -Xms128m -Xmx256m
+    ports:
+      - "127.0.0.1:${KAFKA_UI_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
 volumes:
   postgres-data:
   redis-data:
