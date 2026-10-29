@@ -66,7 +66,48 @@ services:
         limits:
           memory: 256m
 
+  # KRaft 단일 노드: 한 프로세스가 브로커와 컨트롤러를 겸한다
+  kafka:
+    image: apache/kafka:4.4.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      CLUSTER_ID: lIUNNF7XRyCL_HZQ7sRkYw
+      # INTERNAL은 compose 안의 컨테이너용(kafka:19092), HOST는 호스트에서 실행하는 앱용
+      KAFKA_LISTENERS: CONTROLLER://:9093,INTERNAL://:19092,HOST://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,HOST://localhost:${KAFKA_PORT:-9092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # 노드가 하나라 내부 토픽 복제 수를 기본값 3에서 1로 낮춘다
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      # 운영처럼 토픽은 명시적으로 만든다. 이름 오타가 새 토픽이 되지 않게 한다
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # 기본 설정은 /tmp에 쓰므로 이미지가 선언한 볼륨 경로로 바꾼다
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "127.0.0.1:${KAFKA_PORT:-9092}:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      # kafka-*.sh 도구는 실행마다 JVM을 새로 띄우므로 포트 확인으로 대신한다
+      test: ["CMD", "nc", "-z", "localhost", "19092"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
 volumes:
   postgres-data:
   redis-data:
   seaweedfs-data:
+  kafka-data:
