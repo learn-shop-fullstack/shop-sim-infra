@@ -165,6 +165,29 @@ services:
           # 번들 플러그인 포함 대기 1.39GiB + 부하 시 Direct 버퍼 증가분을 감안 (architecture.md 예산표)
           memory: 2g
 
+  # 필요할 때만 띄운다: docker compose --profile tools up -d opensearch-dashboards
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:3.9.0
+    profiles: [tools]
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      # 서버의 보안 플러그인을 껐으므로 Dashboards 쪽 보안 플러그인도 끈다
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    ports:
+      - "127.0.0.1:${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
 volumes:
   postgres-data:
   redis-data:
