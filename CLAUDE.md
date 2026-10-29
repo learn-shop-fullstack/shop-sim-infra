@@ -17,7 +17,7 @@ compose/
   compose.app.yml       # api, worker, store, seller·admin(정적), cloudflared
   compose.obs.yml       # Prometheus, Loki, OTel Collector
 cloudflared/            # Cloudflare Tunnel 설정 (호스트명 → 서비스)
-opensearch/             # 분석기 설정, 동의어·사용자 사전
+opensearch/             # Nori 이미지(Dockerfile), 분석기 설정, 동의어·사용자 사전
 observability/          # Prometheus 스크레이프·알림 규칙, Loki 설정
 scripts/
   deploy/               # 배포 에이전트: PC가 GHCR의 새 이미지를 받아 교체 (pull 방식)
@@ -53,4 +53,4 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 현재 단계
 
-0단계: arm64 호환 확인 → 1단계: 로컬 compose, Cloudflare Tunnel, 배포 에이전트, 백업, 재사용 워크플로. (Oracle은 용량 부족으로 쓰지 않음, #1·ADR 0014)
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`). 남은 것: 역할별 운영 compose, Cloudflare Tunnel, 배포 에이전트, 백업, 재사용 워크플로.
