@@ -131,8 +131,43 @@ services:
         limits:
           memory: 512m
 
+  # Nori 플러그인을 넣어 빌드한다 (../../opensearch/Dockerfile)
+  opensearch:
+    build: ../../opensearch
+    image: shop-sim/opensearch:3.9.0-nori
+    environment:
+      discovery.type: single-node
+      # 개발용: 보안 플러그인(TLS·인증)을 끈다. 포트는 127.0.0.1에만 열린다
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms768m -Xmx768m
+      # 힙이 스왑으로 밀려나지 않게 메모리를 잠근다 (아래 memlock과 함께)
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "127.0.0.1:${OPENSEARCH_PORT:-9200}:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    deploy:
+      resources:
+        limits:
+          # 번들 플러그인 포함 대기 1.39GiB + 부하 시 Direct 버퍼 증가분을 감안 (architecture.md 예산표)
+          memory: 2g
+
 volumes:
   postgres-data:
   redis-data:
   seaweedfs-data:
   kafka-data:
+  opensearch-data:
