@@ -18,7 +18,7 @@ docker compose -p <프로젝트> --env-file <env 파일> -f compose.data.yml -f 
 ```
 
 - `ps`·`logs`·`down`도 같은 `-p`·`--env-file`·`-f`를 준다. 필수 변수(`${…:?}`)가 비면 어떤 명령이든 실패한다
-- env 파일의 변수 목록은 `.env.example`. 실제 값은 레포 밖의 권한 제한된 파일에 둔다
+- env 파일은 `~/.config/shop-sim/<환경>/compose.env`(만들기·바꾸기는 `scripts/secrets/README.md`). 변수 목록은 `.env.example`
 - 앱 이미지 없이 설정만 확인: `docker compose --env-file .env.example -f compose.data.yml -f compose.app.yml config -q`
 
 ## 개발용(`local/`)과 다른 점
