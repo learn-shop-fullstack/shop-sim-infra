@@ -1,0 +1,19 @@
+# production 터널 설정(ADR 0022). 매핑의 원본은 이 파일이다. 대시보드에서 고치지 않는다
+# 자격 증명(JSON)은 레포 밖 파일을 compose가 아래 경로로 마운트한다
+# 터널 shop-sim-production의 UUID. 이름을 적으면 cert.pem이 있어야 시작한다(README "주의")
+tunnel: 062a7be5-bf68-4f92-a406-ddbd37d2764a
+credentials-file: /etc/cloudflared/credentials.json
+
+# 위에서부터 처음 맞는 규칙을 쓴다. 서비스 주소는 같은 compose 프로젝트의 서비스 이름이다
+ingress:
+  - hostname: shop-api.p-stack.dev
+    service: http://api:3000
+  - hostname: shop-store.p-stack.dev
+    service: http://store:3000
+  # 정적 파일 서버(seller·admin) 이미지는 8080에서 듣는다
+  - hostname: shop-seller.p-stack.dev
+    service: http://seller:8080
+  - hostname: shop-admin.p-stack.dev
+    service: http://admin:8080
+  # 마지막 규칙은 호스트명 없이 모든 요청을 받아야 한다. 등록하지 않은 호스트명은 404
+  - service: http_status:404
