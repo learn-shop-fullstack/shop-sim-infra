@@ -41,6 +41,81 @@ services:
         limits:
           memory: 200m
 
+  # KRaft 단일 노드: 한 프로세스가 브로커와 컨트롤러를 겸한다
+  kafka:
+    image: apache/kafka:4.4.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      # 데이터 볼륨과 짝이다. 바꾸면 기존 볼륨으로 시작하지 못한다. 환경마다 볼륨이 따로라 같은 값을 쓴다
+      CLUSTER_ID: lIUNNF7XRyCL_HZQ7sRkYw
+      # 호스트에서 접속하는 앱이 없어 개발용의 HOST 리스너는 두지 않는다
+      KAFKA_LISTENERS: CONTROLLER://:9093,INTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # 노드가 하나라 내부 토픽 복제 수를 기본값 3에서 1로 낮춘다
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      # 토픽은 명시적으로 만든다. 이름 오타가 새 토픽이 되지 않게 한다
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # 기본 설정은 /tmp에 쓰므로 이미지가 선언한 볼륨 경로로 바꾼다
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      # kafka-*.sh 도구는 실행마다 JVM을 새로 띄우므로 포트 확인으로 대신한다
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  # Nori 플러그인을 넣어 빌드한다 (../opensearch/Dockerfile)
+  opensearch:
+    build: ../opensearch
+    image: shop-sim/opensearch:3.9.0-nori
+    environment:
+      discovery.type: single-node
+      # 보안 플러그인(TLS·인증)을 끈다. 호스트 포트가 없고 같은 프로젝트의 컨테이너만 접속한다
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms768m -Xmx768m
+      # 힙이 스왑으로 밀려나지 않게 메모리를 잠근다 (아래 memlock과 함께)
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          # 번들 플러그인 포함 대기 1.39GiB + 부하 시 Direct 버퍼 증가분을 감안 (architecture.md 예산표)
+          memory: 2g
+
 volumes:
   postgres-data:
   redis-data:
+  kafka-data:
+  opensearch-data:
