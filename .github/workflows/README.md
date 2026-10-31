@@ -20,7 +20,7 @@ jobs:
 ```
 
 - 입력은 추가만 한다. 지우거나 의미를 바꿀 때는 새 워크플로 파일을 만든다(앱 레포가 `@main`으로 부른다)
-- 처음 올린 패키지는 private로 생긴다. 패키지 설정(Package settings → Change visibility)에서 public으로 바꾼다. **되돌릴 수 없다.** 이미지에 비밀값이 없는지 먼저 확인한다
+- 처음 올린 패키지는 private로 생긴다. 패키지 설정(Package settings → Change visibility)에서 public으로 바꾼다. 조직 설정(Settings → Packages → Package creation)에서 Public을 허용해 두었다(웹 UI라 파일에 흔적이 없다). **되돌릴 수 없다.** 이미지에 비밀값이 없는지 먼저 확인한다
 - 패키지는 이미지 라벨(`org.opencontainers.image.source`)로 호출한 레포에 연결되고 그 레포의 접근 권한을 따른다. 서비스 이름 하나는 한 레포에서만 올린다
 
 ## `opensearch-image.yml`
