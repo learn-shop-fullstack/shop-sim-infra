@@ -31,6 +31,6 @@ docker compose -p <프로젝트> --env-file <env 파일> -f compose.data.yml -f 
 
 - `compose.app.yml`의 `depends_on`이 `compose.data.yml`의 postgres를 가리켜 app 파일만으로는 검사를 통과하지 않는다. 데이터 서비스를 다른 기계로 옮기면 `depends_on`을 지운다
 - `DATABASE_URL`의 계정은 `POSTGRES_*`와 손으로 맞춘다. `POSTGRES_*`는 볼륨이 빈 첫 실행 때만 적용된다
-- OpenSearch 이미지는 아직 PC에서 빌드한다(`build: ../opensearch`). 재사용 워크플로가 생기면 GHCR 이미지로 바꾼다
+- OpenSearch 이미지는 GHCR에서 받는다(`opensearch-image` 워크플로, #14). `opensearch/Dockerfile`을 바꾸면 머지 후 새 `sha-` 태그로 `compose.data.yml`을 고치는 PR을 낸다. 개발용 `compose/local/`은 그대로 PC에서 빌드한다
 - web 이미지는 API 주소가 빌드에 들어가 환경마다 태그가 다르다(ADR 0020)
 - 메모리 상한은 `architecture.md` 예산표를 따른다. 지금 합계 5.82GiB(데이터 4.2, 앱 1.62)

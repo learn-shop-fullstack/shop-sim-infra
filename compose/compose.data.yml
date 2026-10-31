@@ -81,10 +81,10 @@ services:
         limits:
           memory: 1g
 
-  # Nori 플러그인을 넣어 빌드한다 (../opensearch/Dockerfile)
+  # Nori 플러그인을 넣은 이미지. CI(opensearch-image 워크플로)가 ../opensearch/Dockerfile을 빌드해 올린다.
+  # 태그는 그 이미지를 만든 커밋(sha-<7자>)이라 Dockerfile을 바꾸면 새 태그로 고친다
   opensearch:
-    build: ../opensearch
-    image: shop-sim/opensearch:3.9.0-nori
+    image: ghcr.io/learn-shop-fullstack/shop-sim-opensearch:sha-012c4af
     environment:
       discovery.type: single-node
       # 보안 플러그인(TLS·인증)을 끈다. 호스트 포트가 없고 같은 프로젝트의 컨테이너만 접속한다
