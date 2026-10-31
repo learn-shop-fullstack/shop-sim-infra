@@ -13,13 +13,13 @@ staging·production이 쓰는 역할별 compose 파일이다. 개발용 스택�
 두 파일을 같은 프로젝트로 합쳐 띄운다. 프로젝트 이름(`-p`)으로 환경을 나누고, 볼륨·네트워크 이름도 이 이름을 따른다.
 
 ```sh
-docker compose -p <프로젝트> --env-file <env 파일> -f compose.data.yml -f compose.app.yml up -d --wait
-docker compose -p <프로젝트> --env-file <env 파일> -f compose.data.yml -f compose.app.yml ps
+docker compose -p <프로젝트> --env-file <비밀 env> --env-file ../deploy/<환경>.env -f compose.data.yml -f compose.app.yml up -d --wait
+docker compose -p <프로젝트> --env-file <비밀 env> --env-file ../deploy/<환경>.env -f compose.data.yml -f compose.app.yml ps
 ```
 
 - `ps`·`logs`·`down`도 같은 `-p`·`--env-file`·`-f`를 준다. 필수 변수(`${…:?}`)가 비면 어떤 명령이든 실패한다
-- env 파일은 `~/.config/shop-sim/<환경>/compose.env`(만들기·바꾸기는 `scripts/secrets/README.md`). 변수 목록은 `.env.example`
-- 앱 이미지 없이 설정만 확인: `docker compose --env-file .env.example -f compose.data.yml -f compose.app.yml config -q`
+- env 파일은 두 개다. 비밀 env는 `~/.config/shop-sim/<환경>/compose.env`(만들기·바꾸기는 `scripts/secrets/README.md`, 변수 목록은 `.env.example`), 배포 상태는 `../deploy/<환경>.env`(앱 이미지 태그). 같은 변수가 두 파일에 있으면 뒤에 준 파일이 이긴다
+- 앱 이미지 없이 설정만 확인: `docker compose --env-file .env.example -f compose.data.yml -f compose.app.yml config -q`. 이미지 변수가 없어 실패하므로 `API_IMAGE=x WORKER_IMAGE=x STORE_IMAGE=x SELLER_IMAGE=x ADMIN_IMAGE=x`를 앞에 붙인다
 
 ## 개발용(`local/`)과 다른 점
 
