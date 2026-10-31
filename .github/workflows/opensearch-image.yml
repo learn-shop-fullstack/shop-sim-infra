@@ -1,0 +1,30 @@
+# OpenSearch(Nori) 이미지를 재사용 워크플로로 빌드한다. main에서는 GHCR에 올리고 PR에서는 빌드만 한다
+name: opensearch-image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - opensearch/**
+      - .github/workflows/build-image.yml
+      - .github/workflows/opensearch-image.yml
+  pull_request:
+    paths:
+      - opensearch/**
+      - .github/workflows/build-image.yml
+      - .github/workflows/opensearch-image.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # 재사용 워크플로는 이 job이 준 권한까지만 쓸 수 있다
+    permissions:
+      contents: read
+      packages: write
+    # 같은 레포의 워크플로는 ./ 경로로 부르고, 이 실행과 같은 커밋의 파일을 쓴다
+    uses: ./.github/workflows/build-image.yml
+    with:
+      image: opensearch
+      context: opensearch
