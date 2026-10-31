@@ -45,12 +45,14 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 - 앱 레포는 이 레포의 재사용 워크플로를 호출만 하고, 배포 방식은 이 레포가 소유한다.
 - 인프라 변경 리뷰 가이드에는 **되돌리는 방법**과 **다운타임 여부**를 반드시 포함한다.
 
+## 결정사항
+
+- 외부 공개: 환경마다 locally-managed Cloudflare Tunnel 하나. 호스트명 → 서비스 매핑의 원본은 `cloudflared/<환경>.yml`(대시보드에서 고치지 않는다). 호스트명은 `shop-{api,store,seller,admin}.p-stack.dev`, staging은 `shop-staging-…`(무료 인증서가 한 단계 하위 도메인만 덮는다). 리버스 프록시는 두지 않는다(ADR 0022, #10). 터널 생성 절차는 `cloudflared/README.md`
+
 ## 미결정
 
 - [ ] 배포 에이전트 도구 (pull 방식, ADR 0014)
-- [ ] 리버스 프록시(Caddy) 필요 여부 — 터널이 호스트명 라우팅을 대신할 수 있다
-- [ ] `p-stack.dev` 하위 도메인 구성 (api / store / seller / admin, staging)
 
 ## 현재 단계
 
-1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`). 남은 것: Cloudflare Tunnel(cloudflared를 `compose.app.yml`에), 환경 분리, 비밀값, 배포 에이전트, 백업, 재사용 워크플로(OpenSearch 이미지도 GHCR로).
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인). 남은 것: 환경 분리, 비밀값, 배포 에이전트, 백업, 재사용 워크플로(OpenSearch 이미지도 GHCR로).
