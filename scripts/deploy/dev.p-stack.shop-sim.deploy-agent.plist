@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 배포 에이전트 launchd 등록 파일(ADR 0025). __HOME__을 바꿔 ~/Library/LaunchAgents/에 둔다(README.md).
+     운영 클론 안의 스크립트를 실행해, 스크립트 변경도 main 머지로 배포된다 -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.p-stack.shop-sim.deploy-agent</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__HOME__/.local/share/shop-sim/infra/scripts/deploy/agent.sh</string>
+  </array>
+  <!-- launchd는 셸 설정을 읽지 않아 PATH가 짧다. docker와 자격 증명 도우미가 /usr/local/bin에 있다 -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <!-- 등록·로그인 직후 한 번, 그 뒤 60초마다. 이전 실행이 안 끝났으면 launchd가 새로 띄우지 않는다 -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>60</integer>
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/shop-sim-deploy-agent.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/shop-sim-deploy-agent.log</string>
+</dict>
+</plist>
