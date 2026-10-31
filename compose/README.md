@@ -6,6 +6,7 @@ staging·production이 쓰는 역할별 compose 파일이다. 개발용 스택�
 |---|---|
 | `compose.data.yml` | Postgres, Redis, Kafka(KRaft), OpenSearch(+Nori) |
 | `compose.app.yml` | api, worker, store, seller, admin |
+| `compose.staging.yml` | staging 덮어쓰기: 메모리 상한·힙만 줄인다(ADR 0026) |
 | `compose.obs.yml` | (13단계) Prometheus, Loki, OTel Collector |
 
 ## 실행
@@ -16,6 +17,8 @@ staging·production이 쓰는 역할별 compose 파일이다. 개발용 스택�
 docker compose -p <프로젝트> --env-file <비밀 env> --env-file ../deploy/<환경>.env -f compose.data.yml -f compose.app.yml up -d --wait
 docker compose -p <프로젝트> --env-file <비밀 env> --env-file ../deploy/<환경>.env -f compose.data.yml -f compose.app.yml ps
 ```
+
+staging은 `-f compose.staging.yml`을 마지막에 덧붙인다. 배포 에이전트는 `compose.<환경>.yml`이 있으면 자동으로 붙인다.
 
 - `ps`·`logs`·`down`도 같은 `-p`·`--env-file`·`-f`를 준다. 필수 변수(`${…:?}`)가 비면 어떤 명령이든 실패한다
 - env 파일은 두 개다. 비밀 env는 `~/.config/shop-sim/<환경>/compose.env`(만들기·바꾸기는 `scripts/secrets/README.md`, 변수 목록은 `.env.example`), 배포 상태는 `../deploy/<환경>.env`(앱 이미지 태그). 같은 변수가 두 파일에 있으면 뒤에 준 파일이 이긴다
@@ -34,3 +37,4 @@ docker compose -p <프로젝트> --env-file <비밀 env> --env-file ../deploy/<�
 - OpenSearch 이미지는 GHCR에서 받는다(`opensearch-image` 워크플로, #14). `opensearch/Dockerfile`을 바꾸면 머지 후 새 `sha-` 태그로 `compose.data.yml`을 고치는 PR을 낸다. 개발용 `compose/local/`은 그대로 PC에서 빌드한다
 - web 이미지는 API 주소가 빌드에 들어가 환경마다 태그가 다르다(ADR 0020)
 - 메모리 상한은 `architecture.md` 예산표를 따른다. 지금 합계 5.82GiB(데이터 4.2, 앱 1.62)
+- staging 덮어쓰기에는 상한·힙만 둔다. `command`는 합쳐지지 않고 통째로 바뀌므로 redis 옵션을 공용 파일에서 바꾸면 여기도 고친다. 공용 파일을 고치면 두 환경 모두 `config`로 검사한다. staging 합계 3392MiB, 대기 실측은 #19
