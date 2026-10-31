@@ -1,0 +1,70 @@
+# 운영(staging·production) 앱 서비스. compose.data.yml과 같은 프로젝트로 합쳐 띄운다.
+# 이미지와 다른 서비스 주소는 전부 환경 변수로 받는다
+# 메모리 상한 합계는 예산표 "Node 앱 4개 + Next.js 2GB" 안에 둔다
+
+services:
+  api:
+    image: ${API_IMAGE:?}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?}
+    depends_on:
+      # compose.data.yml의 서비스를 가리켜 두 파일을 함께 줘야 한다(required: false여도 검사에서 막힌다).
+      # 데이터 서비스를 다른 기계로 옮기면 이 블록을 지운다
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # 이미지에 curl·wget이 없을 수 있어 Node로 확인한다. /health는 204(api 스펙)
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # HTTP 서버가 없어 healthcheck를 두지 않는다. 작업(아웃박스 릴레이 등)이 생기면 그때 정한다
+  worker:
+    image: ${WORKER_IMAGE:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # API 주소는 빌드할 때 번들에 들어가 실행 환경 변수가 없다(ADR 0020). 환경마다 이미지가 다르다
+  store:
+    image: ${STORE_IMAGE:?}
+    healthcheck:
+      # 홈은 정적 페이지라 API가 내려가 있어도 서버 프로세스만 확인한다
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # 정적 파일 서버 이미지(SPA, ADR 0019). 서버 종류와 healthcheck는 web 이미지를 만들 때 정한다.
+  # 없는 경로도 index.html로 돌려줘야 라우터가 화면을 그린다
+  seller:
+    image: ${SELLER_IMAGE:?}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+  admin:
+    image: ${ADMIN_IMAGE:?}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64m

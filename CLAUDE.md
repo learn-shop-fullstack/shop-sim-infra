@@ -15,7 +15,7 @@ compose/
   local/                # 개발용 전체 스택 (앱 레포들이 이걸 띄워서 개발)
   compose.data.yml      # Postgres, Redis, Kafka(KRaft), OpenSearch(+Nori)
   compose.app.yml       # api, worker, store, seller·admin(정적), cloudflared
-  compose.obs.yml       # Prometheus, Loki, OTel Collector
+  compose.obs.yml       # (13단계) Prometheus, Loki, OTel Collector
 cloudflared/            # Cloudflare Tunnel 설정 (호스트명 → 서비스)
 opensearch/             # Nori 이미지(Dockerfile), 분석기 설정, 동의어·사용자 사전
 observability/          # Prometheus 스크레이프·알림 규칙, Loki 설정
@@ -53,4 +53,4 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 현재 단계
 
-1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`). 남은 것: 역할별 운영 compose, Cloudflare Tunnel, 배포 에이전트, 백업, 재사용 워크플로.
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`). 남은 것: Cloudflare Tunnel(cloudflared를 `compose.app.yml`에), 환경 분리, 비밀값, 배포 에이전트, 백업, 재사용 워크플로(OpenSearch 이미지도 GHCR로).
