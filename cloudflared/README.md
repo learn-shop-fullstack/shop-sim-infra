@@ -30,7 +30,7 @@ staging은 이름을 `shop-sim-staging`으로, 호스트명을 `shop-staging-$h.
 ## 비밀 파일
 
 - `cert.pem`: 터널 생성·DNS 등록에만 쓴다. 컨테이너와 레포에 두지 않는다
-- 자격 증명 `<UUID>.json`: 터널을 띄우는 데 필요한 비밀값이다. 레포 밖에 두고 경로를 env 파일의 `CLOUDFLARED_CREDENTIALS_FILE`에 적는다. 보관 위치는 비밀값 관리 항목에서 정한다
+- 자격 증명 `<UUID>.json`: 터널을 띄우는 데 필요한 비밀값이다. 만든 뒤 `~/.config/shop-sim/<환경>/cloudflared.json`으로 옮기고 비밀번호 관리자에 보관한다(`scripts/secrets/README.md`)
 - 자격 증명을 잃으면 `cf tunnel delete`로 지우고 다시 만든다(UUID가 바뀌므로 `<환경>.yml`과 DNS도 다시)
 
 ## 주의

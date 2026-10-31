@@ -22,6 +22,7 @@ observability/          # Prometheus 스크레이프·알림 규칙, Loki 설정
 scripts/
   deploy/               # 배포 에이전트: PC가 GHCR의 새 이미지를 받아 교체 (pull 방식)
   backup/               # Postgres 백업 → R2, 복구 절차
+  secrets/              # 운영 env 파일 생성, 비밀값 절차
 .github/workflows/      # 재사용 워크플로: arm64 이미지 빌드 → GHCR 푸시
 runbooks/               # 장애 대응 런북
 k8s/                    # (14단계) k3s 매니페스트, Argo CD
@@ -48,6 +49,7 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 ## 결정사항
 
 - 외부 공개: 환경마다 locally-managed Cloudflare Tunnel 하나. 호스트명 → 서비스 매핑의 원본은 `cloudflared/<환경>.yml`(대시보드에서 고치지 않는다). 호스트명은 `shop-{api,store,seller,admin}.p-stack.dev`, staging은 `shop-staging-…`(무료 인증서가 한 단계 하위 도메인만 덮는다). 리버스 프록시는 두지 않는다(ADR 0022, #10). 터널 생성 절차는 `cloudflared/README.md`
+- 비밀값: 운영 원본은 PC의 `~/.config/shop-sim/<환경>/`(디렉터리 700, 파일 600), 백업은 비밀번호 관리자. Postgres 비밀번호는 `scripts/secrets/init-env.sh`가 무작위로 만든다. GitHub Secrets는 CI가 쓰는 값만(지금은 없음), 빌드 공개 값은 Variables. org 레포 전부 secret scanning·push protection(ADR 0023, #12). 절차는 `scripts/secrets/README.md`
 
 ## 미결정
 
@@ -55,4 +57,4 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 현재 단계
 
-1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인). 남은 것: 환경 분리, 비밀값, 배포 에이전트, 백업, 재사용 워크플로(OpenSearch 이미지도 GHCR로).
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인), 비밀값 관리(#12). 남은 것: 환경 분리, 배포 에이전트, 백업, 재사용 워크플로(OpenSearch 이미지도 GHCR로).
