@@ -4,6 +4,8 @@
 
 services:
   postgres:
+    # command는 통째로 바뀐다. 최악 추정: 96MB + 20연결 × 9MB ≈ 276MiB
+    command: ["postgres", "-c", "shared_buffers=96MB", "-c", "effective_cache_size=256MB", "-c", "max_connections=20"]
     deploy:
       resources:
         limits:
