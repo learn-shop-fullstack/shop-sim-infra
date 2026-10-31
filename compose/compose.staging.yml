@@ -1,0 +1,52 @@
+# staging 덮어쓰기(ADR 0026). compose.data.yml·compose.app.yml 뒤에 -f로 준다.
+# staging은 기능 확인용이라 메모리 상한과 힙만 줄인다. 서비스 구성·이미지·설정은 바꾸지 않는다
+# 공용 파일의 서비스 이름이 바뀌면 여기도 고친다(두 환경을 config로 함께 검사한다)
+
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+
+  redis:
+    # command는 합쳐지지 않고 통째로 바뀐다. 정책(noeviction)도 공용 파일과 같게 다시 적는다
+    command: ["redis-server", "--maxmemory", "48mb", "--maxmemory-policy", "noeviction"]
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+  kafka:
+    environment:
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx256m
+    deploy:
+      resources:
+        limits:
+          memory: 640m
+
+  opensearch:
+    environment:
+      OPENSEARCH_JAVA_OPTS: -Xms384m -Xmx384m
+    deploy:
+      resources:
+        limits:
+          memory: 1280m
+
+  api:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  worker:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  store:
+    deploy:
+      resources:
+        limits:
+          memory: 256m

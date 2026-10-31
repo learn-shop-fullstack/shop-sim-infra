@@ -14,10 +14,15 @@ log() { echo "$(date '+%Y-%m-%dT%H:%M:%S%z') $*"; }
 # 환경 하나의 compose 명령. 비밀 env 다음에 배포 상태를 준다. 같은 변수는 뒤 파일이 이긴다(compose/README.md)
 compose() {
   local env="$1"; shift
+  local files=(-f "$clone/compose/compose.data.yml" -f "$clone/compose/compose.app.yml")
+  # 환경별 덮어쓰기(상한·힙, ADR 0026)가 있으면 마지막에 준다. 지금은 staging만 있다
+  if [ -f "$clone/compose/compose.$env.yml" ]; then
+    files+=(-f "$clone/compose/compose.$env.yml")
+  fi
   docker compose -p "shop-sim-$env" \
     --env-file "$secrets/$env/compose.env" \
     --env-file "$clone/deploy/$env.env" \
-    -f "$clone/compose/compose.data.yml" -f "$clone/compose/compose.app.yml" \
+    "${files[@]}" \
     "$@"
 }
 

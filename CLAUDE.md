@@ -15,6 +15,7 @@ compose/
   local/                # 개발용 전체 스택 (앱 레포들이 이걸 띄워서 개발)
   compose.data.yml      # Postgres, Redis, Kafka(KRaft), OpenSearch(+Nori)
   compose.app.yml       # api, worker, store, seller·admin(정적), cloudflared
+  compose.staging.yml   # staging 덮어쓰기: 메모리 상한·힙만
   compose.obs.yml       # (13단계) Prometheus, Loki, OTel Collector
 cloudflared/            # Cloudflare Tunnel 설정 (호스트명 → 서비스)
 opensearch/             # Nori 이미지(Dockerfile), 분석기 설정, 동의어·사용자 사전
@@ -52,6 +53,7 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 - 비밀값: 운영 원본은 PC의 `~/.config/shop-sim/<환경>/`(디렉터리 700, 파일 600), 백업은 비밀번호 관리자. Postgres 비밀번호는 `scripts/secrets/init-env.sh`가 무작위로 만든다. GitHub Secrets는 CI가 쓰는 값만(지금은 없음), 빌드 공개 값은 Variables. org 레포 전부 secret scanning·push protection(ADR 0023, #12). 절차는 `scripts/secrets/README.md`
 - 이미지: 재사용 워크플로 `build-image.yml`이 `ubuntu-24.04-arm`에서 빌드해 `ghcr.io/learn-shop-fullstack/shop-sim-<서비스>:sha-<7자>`로 올린다. 기본 브랜치에서만 올리고 PR에서는 빌드만 한다. 움직이는 태그 없음, 패키지는 public(ADR 0024, #14). 호출법은 `.github/workflows/README.md`
 - 배포: infra main이 배포 상태다(GitOps). 앱 이미지 태그는 `deploy/<환경>.env`, 비밀값은 레포 밖 env(compose에 비밀 env 다음 배포 상태 순으로 넘긴다). PC의 launchd가 1분마다 `scripts/deploy/agent.sh`로 운영 전용 클론을 main에 맞추고 바뀐 커밋을 `compose pull`·`up --wait`로 적용한다. 실패한 커밋은 다시 시도하지 않고 PR로 고치거나 되돌린다. compose 프로젝트 이름은 `shop-sim-<환경>`. 머지가 곧 배포이므로 리뷰 가이드의 다운타임은 머지 시점 기준으로 쓴다(ADR 0025, #17). 설치·일시정지는 `scripts/deploy/README.md`
+- staging: 기능 확인용. 공용 compose는 production 값이고, `compose/compose.staging.yml`이 상한·힙만 줄인다(합계 3392MiB). 에이전트가 `compose.<환경>.yml`이 있으면 마지막 `-f`로 붙인다. 데이터 서비스도 환경마다 따로이고 성능은 staging으로 판단하지 않는다(ADR 0026, #19)
 
 ## 미결정
 
@@ -59,4 +61,4 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 현재 단계
 
-1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인), 비밀값 관리(#12), 재사용 워크플로와 OpenSearch 이미지 GHCR 게시(#14), 배포 에이전트(#17, 앱 이미지가 없어 성공 경로는 미확인). 남은 것: 환경 분리, 백업, 메모리 실측, 앱 레포 호출.
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인), 비밀값 관리(#12), 재사용 워크플로와 OpenSearch 이미지 GHCR 게시(#14), 배포 에이전트(#17, 앱 이미지가 없어 성공 경로는 미확인), 환경 분리(#19, staging 데이터 스택 대기 실측까지). 남은 것: 백업, 메모리 실측, 앱 레포 호출.
