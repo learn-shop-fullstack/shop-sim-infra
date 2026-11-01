@@ -49,6 +49,7 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 결정사항
 
+- 네트워크: 운영 compose는 `edge`(cloudflared·앱, 외부 출구 있음)와 `data`(데이터 서비스, `internal: true`)로 나누고 api·worker만 둘 다 붙는다. cloudflared는 데이터 서비스에 닿지 않는다. 새 서비스는 `networks`를 꼭 적는다(ADR 0027, #25). 규칙과 확인 명령은 `compose/README.md`
 - 외부 공개: 환경마다 locally-managed Cloudflare Tunnel 하나. 호스트명 → 서비스 매핑의 원본은 `cloudflared/<환경>.yml`(대시보드에서 고치지 않는다). 호스트명은 `shop-{api,store,seller,admin}.p-stack.dev`, staging은 `shop-staging-…`(무료 인증서가 한 단계 하위 도메인만 덮는다). 리버스 프록시는 두지 않는다(ADR 0022, #10). 터널 생성 절차는 `cloudflared/README.md`
 - 비밀값: 운영 원본은 PC의 `~/.config/shop-sim/<환경>/`(디렉터리 700, 파일 600), 백업은 비밀번호 관리자. Postgres 비밀번호는 `scripts/secrets/init-env.sh`가 무작위로 만든다. GitHub Secrets는 CI가 쓰는 값만(지금은 없음), 빌드 공개 값은 Variables. org 레포 전부 secret scanning·push protection(ADR 0023, #12). 절차는 `scripts/secrets/README.md`
 - 이미지: 재사용 워크플로 `build-image.yml`이 `ubuntu-24.04-arm`에서 빌드해 `ghcr.io/learn-shop-fullstack/shop-sim-<서비스>:sha-<7자>`로 올린다. 기본 브랜치에서만 올리고 PR에서는 빌드만 한다. 움직이는 태그 없음, 패키지는 public(ADR 0024, #14). 호출법은 `.github/workflows/README.md`

@@ -24,9 +24,19 @@ staging은 `-f compose.staging.yml`을 마지막에 덧붙인다. 배포 에이�
 - env 파일은 두 개다. 비밀 env는 `~/.config/shop-sim/<환경>/compose.env`(만들기·바꾸기는 `scripts/secrets/README.md`, 변수 목록은 `.env.example`), 배포 상태는 `../deploy/<환경>.env`(앱 이미지 태그). 같은 변수가 두 파일에 있으면 뒤에 준 파일이 이긴다
 - 앱 이미지 없이 설정만 확인: `docker compose --env-file .env.example -f compose.data.yml -f compose.app.yml config -q`. 이미지 변수가 없어 실패하므로 `API_IMAGE=x WORKER_IMAGE=x STORE_IMAGE=x SELLER_IMAGE=x ADMIN_IMAGE=x`를 앞에 붙인다
 
+## 네트워크 (ADR 0027)
+
+| 네트워크 | 선언 | 서비스 |
+|---|---|---|
+| `edge` | `compose.app.yml`, 외부 출구 있음 | cloudflared, api, worker, store, seller, admin |
+| `data` | `compose.data.yml`, `internal: true`(외부 출구 없음) | postgres, redis, kafka, opensearch, api, worker |
+
+- 새 서비스는 `networks`를 꼭 적는다. 빠뜨리면 `default` 네트워크에 혼자 붙어 아무와도 통신하지 못한다. 데이터 서비스는 `data`만, 터널이 가리키는 서비스는 `edge`, 데이터 서비스를 쓰는 앱은 둘 다
+- 소속 확인: `config --format json | jq -r '.services | to_entries[] | "\(.key): \(.value.networks | keys | join(","))"'`(env는 위의 설정 확인과 같다). `default`가 나오면 빠뜨린 것이다
+
 ## 개발용(`local/`)과 다른 점
 
-- 호스트 포트를 열지 않는다. 같은 프로젝트의 컨테이너만 서비스 이름(`postgres:5432`, `kafka:9092`, `opensearch:9200`)으로 접속한다
+- 호스트 포트를 열지 않는다. 같은 프로젝트·같은 네트워크의 컨테이너만 서비스 이름(`postgres:5432`, `kafka:9092`, `opensearch:9200`)으로 접속한다
 - Kafka 리스너는 컨테이너용 하나(`kafka:9092`)다
 - 모든 서비스가 `restart: unless-stopped`다. SeaweedFS·UI 도구는 없다(운영 이미지 저장소는 R2)
 
