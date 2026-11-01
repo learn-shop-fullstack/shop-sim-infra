@@ -61,4 +61,4 @@ k8s/                    # (14단계) k3s 매니페스트, Argo CD
 
 ## 현재 단계
 
-1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인), 비밀값 관리(#12), 재사용 워크플로와 OpenSearch 이미지 GHCR 게시(#14), 배포 에이전트(#17, 앱 이미지가 없어 성공 경로는 미확인), 환경 분리(#19, staging 데이터 스택 대기 실측까지). 남은 것: 백업, 메모리 실측, 앱 레포 호출.
+1단계 진행 중. 완료: 로컬 개발용 compose(#4, 사용법 `compose/local/README.md`), 역할별 운영 compose data·app(#8, 사용법 `compose/README.md`), Cloudflare Tunnel(#10, production·staging 터널과 DNS 생성, 앱이 없어 502까지 확인), 비밀값 관리(#12), 재사용 워크플로와 OpenSearch 이미지 GHCR 게시(#14), 배포 에이전트(#17, 앱 이미지가 없어 성공 경로는 미확인), 환경 분리(#19, staging 데이터 스택 대기 실측까지), 메모리 예산(#21, 데이터 스택 실측과 Postgres 설정. 앱 컨테이너는 첫 이미지 뒤). 남은 것: 네트워크, 백업, 앱 레포 호출.
