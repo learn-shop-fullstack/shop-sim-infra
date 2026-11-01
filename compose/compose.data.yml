@@ -22,6 +22,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks: [data]
     restart: unless-stopped
     deploy:
       resources:
@@ -40,6 +41,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks: [data]
     restart: unless-stopped
     deploy:
       resources:
@@ -80,6 +82,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks: [data]
     restart: unless-stopped
     deploy:
       resources:
@@ -112,12 +115,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
+    networks: [data]
     restart: unless-stopped
     deploy:
       resources:
         limits:
           # 번들 플러그인 포함 대기 1.39GiB + 부하 시 Direct 버퍼 증가분을 감안 (architecture.md 예산표)
           memory: 2g
+
+# ADR 0027: 데이터 서비스는 외부 출구가 없는 네트워크에만 둔다. 같은 네트워크의 api·worker만 닿는다
+networks:
+  data:
+    internal: true
 
 volumes:
   postgres-data:

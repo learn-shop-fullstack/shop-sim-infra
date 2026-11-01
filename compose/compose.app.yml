@@ -18,6 +18,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 6
+    networks: [edge, data]
     restart: unless-stopped
     deploy:
       resources:
@@ -30,6 +31,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks: [edge, data]
     restart: unless-stopped
     deploy:
       resources:
@@ -45,6 +47,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 6
+    networks: [edge]
     restart: unless-stopped
     deploy:
       resources:
@@ -55,6 +58,7 @@ services:
   # 없는 경로도 index.html로 돌려줘야 라우터가 화면을 그린다
   seller:
     image: ${SELLER_IMAGE:?}
+    networks: [edge]
     restart: unless-stopped
     deploy:
       resources:
@@ -63,6 +67,7 @@ services:
 
   admin:
     image: ${ADMIN_IMAGE:?}
+    networks: [edge]
     restart: unless-stopped
     deploy:
       resources:
@@ -85,8 +90,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 6
+    networks: [edge]
     restart: unless-stopped
     deploy:
       resources:
         limits:
           memory: 128m
+
+# ADR 0027: 터널 진입점과 앱. api·worker만 data(compose.data.yml)에도 붙어 데이터 서비스에 닿는다
+networks:
+  edge: {}
